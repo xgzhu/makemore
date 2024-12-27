@@ -1,5 +1,6 @@
 # ignore ALL .log files
 *.log
+*/logs/
 
 # ignore ALL temporary files and drafts
 temp/

@@ -7,12 +7,13 @@ import random
 import time
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
 
 from utils import *
 
 if __name__ == '__main__':
     ## Set up training/testing Dataset
-    random.seed(time.time_ns)
+    random.seed(str(time.time_ns))
     random.shuffle(words)
     n1 = int(0.8*len(words))
     n2 = int(0.9*len(words))
@@ -38,8 +39,9 @@ if __name__ == '__main__':
     n_epochs = 10
     batch_size = 32
 
-    loss_train = []
-    for i in range(n_epochs):
+    writer = SummaryWriter(log_dir='logs/RNN')
+    idx = 0
+    for epoch in range(n_epochs):
         for X_batch, Y_batch in create_batches(Xtr, Ytr, batch_size):
             # Forward pass
             # note: this version is not correct, it treat each splited string as separate string, while we should carry over the hidden
@@ -53,10 +55,14 @@ if __name__ == '__main__':
             optimizer.step()
 
             # for tracking
-            loss_train.append(loss.data.item())
+            writer.add_scalar("Training Loss", loss.data.item(), idx)
+            idx += 1
 
-            # for debugging purpose
-            break
+        outputs_dev, _ = model(Xdev)  # Detach hidden state to prevent exploding gradients
+        # print(outputs.shape, Y_batch.shape)
+        loss_dev = F.cross_entropy(outputs_dev, Ydev)  # Compute loss
+        writer.add_scalar("Testing Loss", loss_dev.data.item(), idx)
+        print(f"after epoch-{epoch}, traing loss is {loss.data.item()}, dev loss is {loss_dev.data.item()}.")
 
-        print(f"after epoch-{i}, loss is {loss.data.item()}.")
-
+    # Flush tensorboard
+    writer.close()
