@@ -4,3 +4,5 @@
 # ignore ALL temporary files and drafts
 temp/
 drafts/
+
+utils/__pycache__/
