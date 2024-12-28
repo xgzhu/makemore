@@ -20,26 +20,27 @@ if __name__ == '__main__':
     n2 = int(0.9*len(words))
 
     block_size = 6  # Context size
-    Xtr,  Ytr  = build_dataset(words[:n1],   block_size)     # 80%
+    Xtr,  Ytr  = build_dataset(words[:n1], block_size)     # 80%
     Xdev, Ydev = build_dataset(words[n1:], block_size)   # 10%
 
     # Hyperparameters
     embedding_dim = 32
     hidden_dim = 128
+    num_layers = 1
 
     # Initialize the model
-    model = CharRNN(vocab_size=vocab_size, embedding_dim=embedding_dim, hidden_dim=hidden_dim)
+    model = CharLSTM(vocab_size, embedding_dim, hidden_dim, vocab_size, num_layers)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Total elements = embedding_dim * vocab_size + (embedding_dim + 1) * hidden_dim + (hidden_dim + 1) * hidden_dim + (hidden_dim + 1) * vocab_size
     parameters = model.parameters()
     print(sum(p.nelement() for p in parameters)) # number of parameters in total
 
-    # Training the RNN
+    # Training the LSTM
     n_epochs = 20
     batch_size = 32
 
-    writer = SummaryWriter(log_dir='logs/RNN')
+    writer = SummaryWriter(log_dir='logs')
     idx = 0
     for epoch in range(n_epochs):
         for X_batch, Y_batch in create_batches(Xtr, Ytr, batch_size):
@@ -84,3 +85,6 @@ if __name__ == '__main__':
                 break
             name.append(token.item())
         print("".join([itos[i] for i in name]))
+
+    PATH = "./output/saved_lstm"
+    torch.save(model, PATH)

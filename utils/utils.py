@@ -17,8 +17,8 @@ def build_dataset(words, block_size = 8):
     for ch in w + '.':
       ix = stoi[ch]
       X.append(context)
-      Y.append(ix)
       context = context[1:] + [ix] # crop and append
+      Y.append(context)
 
   X = torch.tensor(X)
   Y = torch.tensor(Y)
