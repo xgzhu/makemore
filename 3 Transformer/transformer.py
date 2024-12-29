@@ -19,35 +19,34 @@ if __name__ == '__main__':
     n1 = int(0.8*len(words))
     n2 = int(0.9*len(words))
 
-    block_size = 6  # Context size
-    Xtr,  Ytr  = build_dataset(words[:n1],   block_size)     # 80%
-    Xdev, Ydev = build_dataset(words[n1:], block_size)   # 10%
+    Xtr,  Ytr  = build_dataset(words[:n1], 1)     # 80%
+    Xdev, Ydev = build_dataset(words[n1:], 1)   # 10%
 
     # Hyperparameters
-    embedding_dim = 32
-    hidden_dim = 128
+    emb_size = 32
+    head_size = 4
+    max_len = 8
+
 
     # Initialize the model
-    model = CharRNN(vocab_size=vocab_size, embedding_dim=embedding_dim, hidden_dim=hidden_dim)
+    model = TransformerModel(vocab_size, emb_size, max_len)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Total elements = embedding_dim * vocab_size + (embedding_dim + 1) * hidden_dim + (hidden_dim + 1) * hidden_dim + (hidden_dim + 1) * vocab_size
     parameters = model.parameters()
     print(sum(p.nelement() for p in parameters)) # number of parameters in total
 
-    # Training the RNN
-    n_epochs = 20
+    # Training the LSTM
+    n_epochs = 10
     batch_size = 32
 
-    writer = SummaryWriter(log_dir='logs/RNN')
+    writer = SummaryWriter(log_dir='logs')
     idx = 0
     for epoch in range(n_epochs):
         for X_batch, Y_batch in create_batches(Xtr, Ytr, batch_size):
             # Forward pass
             # note: this version is not correct, it treat each splited string as separate string, while we should carry over the hidden
-            outputs, _ = model(X_batch)  
-            # print(outputs.shape, Y_batch.shape)
-            loss = F.cross_entropy(outputs.view(-1, vocab_size), Y_batch.view(-1))  # Compute loss
+            logits, loss = model(X_batch, Y_batch)
         
             # Backward pass
             optimizer.zero_grad()
@@ -71,19 +70,11 @@ if __name__ == '__main__':
     model.eval()
 
     # Give some predictions
-    for _ in range(20):
-        name = []
-        context = [0] * block_size # initialize with all ...
-        # hidden = None
-        while True:
-            # forward pass the neural net
-            out, _ = model(torch.tensor([context]))
-            logits = out[:,-1,:]
-            probs = F.softmax(logits, dim=1)
+    results = m.generate(idx = torch.zeros((20, 1), dtype=torch.long), max_new_tokens=20).tolist()
+    for res in results:
+        res = res[1:]
+        print("".join([itos[i] for i in res]))
 
-            token = torch.multinomial(probs, num_samples=1, replacement=True)
-            context = context[1:] + [token]
-            if token == 0:
-                break
-            name.append(token.item())
-        print("".join([itos[i] for i in name]))
+    # Save model
+    PATH = "./output/saved_lstm"
+    torch.save(model, PATH)

@@ -4,3 +4,4 @@ Following thoughts from [karpathy/makemore](https://github.com/karpathy/makemore
 
 1. RNN
 1. LSTM
+1. Transformer

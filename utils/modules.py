@@ -18,10 +18,6 @@ class CharRNN(nn.Module):
         out = self.fc(out)  # Pass through fully connected layer
         return out, hidden
 
-    def parameters(self):
-        # get parameters of all layers and stretch them out into one list
-        return [p for layer in self.layers for p in layer.parameters()]
-
 
 class CharLSTM(nn.Module):
     def __init__(self, vocab_size, embedding_dim, hidden_size, output_size, num_layers=1):
@@ -45,7 +41,3 @@ class CharLSTM(nn.Module):
             out, hc = self.lstm(x, hc)
         out = self.fc(out)
         return out, hc
-
-    def parameters(self):
-        # get parameters of all layers and stretch them out into one list
-        return [p for layer in self.layers for p in layer.parameters()]

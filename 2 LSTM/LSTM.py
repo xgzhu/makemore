@@ -68,6 +68,9 @@ if __name__ == '__main__':
     # Flush tensorboard
     writer.close()
 
+    # Change mode to eval
+    model.eval()
+
     # Give some predictions
     for _ in range(20):
         name = []
