@@ -23,14 +23,14 @@ if __name__ == '__main__':
     Xdev, Ydev = build_dataset(words[n1:], 1)   # 10%
 
     # Hyperparameters
-    emb_size = 32
+    emb_size = 16
     head_size = 4
     max_len = 8
-
+    layer_cnt = 2
 
     # Initialize the model
-    model = TransformerModel(vocab_size, emb_size, max_len)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    model = TransformerModel(vocab_size, emb_size, max_len, layer_cnt)
+    optimizer = optim.Adam(model.parameters(), lr=0.005)
 
     # Total elements = embedding_dim * vocab_size + (embedding_dim + 1) * hidden_dim + (hidden_dim + 1) * hidden_dim + (hidden_dim + 1) * vocab_size
     parameters = model.parameters()
@@ -69,12 +69,12 @@ if __name__ == '__main__':
     # Change mode to eval
     model.eval()
 
-    # Give some predictions
-    results = m.generate(idx = torch.zeros((20, 1), dtype=torch.long), max_new_tokens=20).tolist()
-    for res in results:
-        res = res[1:]
-        print("".join([itos[i] for i in res]))
-
     # Save model
     PATH = "./output/saved_lstm"
     torch.save(model, PATH)
+
+    # Give some predictions
+    results = model.generate(idx = torch.zeros((20, 1), dtype=torch.long), max_new_tokens=20).tolist()
+    for res in results:
+        res = res[1:]
+        print("".join([itos[i] for i in res]))
